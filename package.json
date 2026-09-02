@@ -3,39 +3,13 @@
   "version": "1.0.2",
   "description": "Pi extension for extracting and filtering user and agent messages from sessions with multiple output formats",
   "type": "module",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
-  "exports": {
-    ".": {
-      "import": "./dist/index.js",
-      "types": "./dist/index.d.ts"
-    }
-  },
-  "scripts": {
-    "build": "tsc",
-    "dev": "tsc --watch",
-    "prepublishOnly": "npm run build"
-  },
-  "keywords": [
-    "pi",
-    "pi-extension",
-    "extension",
-    "session",
-    "messages",
-    "extract",
-    "export",
-    "filter",
-    "clipboard"
-  ],
-  "files": [
-    "dist",
-    "README.md",
-    "LICENSE"
-  ],
-  "author": "Emrecan Altinsoy",
   "license": "MIT",
+  "author": "Emrecan Altinsoy",
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "pi": {
-    "extensions": ["./dist/index.js"]
+    "extensions": ["./src/index.ts"]
   },
   "dependencies": {
     "clipboardy": "^3.0.0"
@@ -45,15 +19,8 @@
     "@types/node": "^20.0.0",
     "typescript": "^5.0.0"
   },
-  "engines": {
-    "node": ">=18.0.0"
-  },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/emrecanaltinsoy/extract-session-extension.git"
-  },
-  "bugs": {
-    "url": "https://github.com/emrecanaltinsoy/extract-session-extension/issues"
-  },
-  "homepage": "https://github.com/emrecanaltinsoy/extract-session-extension#readme"
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch"
+  }
 }
