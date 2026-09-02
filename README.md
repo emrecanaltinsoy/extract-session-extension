@@ -38,50 +38,47 @@ A powerful Pi extension for extracting and filtering user and agent messages fro
 
 ## Installation
 
-### Option 1: Install via Pi from GitHub (Easiest - Recommended) 🚀
+### Recommended: Local Installation (No Credentials Required)
 
-**Use the raw GitHub URL directly in any Pi session:**
+**Simplest method - works everywhere, no git/SSH/credentials needed:**
 
-```
-/pi install https://github.com/emrecanaltinsoy/extract-session-extension.git
+```bash
+# Clone repository (or download ZIP from GitHub)
+git clone https://github.com/emrecanaltinsoy/extract-session-extension.git
+cd extract-session-extension
+
+# Install via Pi (from any Pi session)
+/pi install /full/path/to/extract-session-extension
+
+# Or if you're in that directory:
+/pi install .
+
+# Reload Pi
 /reload
+
+# Done!
 /extract --help
 ```
 
-That's it! The `/extract` command will be available immediately.
+**Why this method:**
+- ✅ No GitHub credentials
+- ✅ No SSH setup
+- ✅ No GitHub CLI needed
+- ✅ Works everywhere
+- ✅ Simple and reliable
 
-**Why this method?**
-- ✅ Works without npm registry
-- ✅ No scoping issues
-- ✅ Simplest installation method
-- ✅ Direct from GitHub source
+See [INSTALL_LOCAL.md](INSTALL_LOCAL.md) for detailed instructions including ZIP download option.
 
-### Option 2: Alternative Installation Methods
+### Alternative: SSH Installation (if SSH keys configured)
 
-**Git shorthand (also works):**
-```
-/pi install git:github.com/emrecanaltinsoy/extract-session-extension
-```
-
-**SSH URL (if you have SSH configured):**
 ```
 /pi install ssh://git@github.com/emrecanaltinsoy/extract-session-extension.git
+/reload
 ```
 
-**Local development:**
-```
-/pi install /path/to/extract-session-extension
-```
+Requires: SSH keys configured for GitHub
 
-### Option 3: Install via npm (if published)
-
-**From npm registry:**
-
-```bash
-npm install --save-dev extract-session-extension
-```
-
-### Option 4: Install Globally
+### Option 2: Global npm Installation (if published)
 
 ```bash
 npm install -g extract-session-extension
@@ -103,13 +100,23 @@ npm install emrecanaltinsoy/extract-session-extension
 
 The easiest way to get started:
 
-```
-/pi install https://github.com/emrecanaltinsoy/extract-session-extension.git
+```bash
+# 1. Clone the repository (or download ZIP from GitHub)
+git clone https://github.com/emrecanaltinsoy/extract-session-extension.git
+cd extract-session-extension
+
+# 2. Install via Pi (from any Pi session)
+/pi install .
+
+# 3. Reload
 /reload
-# Your extension is ready!
+
+# 4. Use it!
 /extract --help
 /extract --exclude-tools --exclude-thinking
 ```
+
+No credentials, SSH keys, or GitHub CLI needed - works everywhere! 🎉
 
 That's it! Your messages are now extracted and copied to clipboard.
 
