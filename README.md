@@ -31,31 +31,57 @@ A powerful Pi extension for extracting and filtering user and agent messages fro
 
 ## Installation
 
-### Option 1: Install via npm (Recommended)
+### Option 1: Install via Pi (Easiest - Recommended)
 
-```bash
-npm install --save-dev @emrecan/extract-session-extension
+**From npm registry or GitHub:**
+
+In any Pi session, use:
+
+```
+/pi install npm:extract-session-extension
 ```
 
-Then in your project, Pi will auto-discover it.
+The extension will be installed and `/extract` command will be available immediately.
 
-### Option 2: Install Globally
+### Option 2: Install via npm
 
-```bash
-npm install -g @emrecan/extract-session-extension
-```
-
-### Option 3: Install from Git
+**From npm registry:**
 
 ```bash
-npm install emrecan/extract-session-extension
+npm install --save-dev extract-session-extension
 ```
 
-### Option 4: Manual Installation
+### Option 3: Install Globally
 
-1. Clone or download this repository
-2. Copy to `~/.pi/agent/extensions/extract-session/`
-3. Or install via npm and let Pi find it
+```bash
+npm install -g extract-session-extension
+```
+
+### Option 4: Install from GitHub
+
+```bash
+npm install emrecanaltinsoy/extract-session-extension
+```
+
+### Option 5: Manual Installation
+
+1. Clone this repository: `git clone https://github.com/emrecanaltinsoy/extract-session-extension.git`
+2. Build it: `npm install && npm run build`
+3. Copy to `~/.pi/agent/extensions/extract-session/`
+
+## Quick Start with Pi
+
+The easiest way to get started:
+
+```
+pi
+/pi install npm:extract-session-extension
+# Wait for installation to complete
+/extract --help
+/extract --exclude-tools --exclude-thinking
+```
+
+That's it! Your messages are now extracted and copied to clipboard.
 
 ## Usage
 
@@ -318,11 +344,11 @@ MIT
 
 ## Author
 
-Emrecan
+Emrecan Altinsoy
 
 ## Repository
 
-https://github.com/emrecan/extract-session-extension
+https://github.com/emrecanaltinsoy/extract-session-extension
 
 ## Support
 
