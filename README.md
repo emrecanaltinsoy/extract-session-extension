@@ -38,19 +38,42 @@ A powerful Pi extension for extracting and filtering user and agent messages fro
 
 ## Installation
 
-### Option 1: Install via Pi (Easiest - Recommended)
+### Option 1: Install via Pi from GitHub (Easiest - Recommended) 🚀
 
-**From npm registry or GitHub:**
-
-In any Pi session, use:
+**Use the raw GitHub URL directly in any Pi session:**
 
 ```
-/pi install npm:extract-session-extension
+/pi install https://github.com/emrecanaltinsoy/extract-session-extension.git
+/reload
+/extract --help
 ```
 
-The extension will be installed and `/extract` command will be available immediately.
+That's it! The `/extract` command will be available immediately.
 
-### Option 2: Install via npm
+**Why this method?**
+- ✅ Works without npm registry
+- ✅ No scoping issues
+- ✅ Simplest installation method
+- ✅ Direct from GitHub source
+
+### Option 2: Alternative Installation Methods
+
+**Git shorthand (also works):**
+```
+/pi install git:github.com/emrecanaltinsoy/extract-session-extension
+```
+
+**SSH URL (if you have SSH configured):**
+```
+/pi install ssh://git@github.com/emrecanaltinsoy/extract-session-extension.git
+```
+
+**Local development:**
+```
+/pi install /path/to/extract-session-extension
+```
+
+### Option 3: Install via npm (if published)
 
 **From npm registry:**
 
@@ -58,7 +81,7 @@ The extension will be installed and `/extract` command will be available immedia
 npm install --save-dev extract-session-extension
 ```
 
-### Option 3: Install Globally
+### Option 4: Install Globally
 
 ```bash
 npm install -g extract-session-extension
@@ -81,9 +104,9 @@ npm install emrecanaltinsoy/extract-session-extension
 The easiest way to get started:
 
 ```
-pi
-/pi install npm:extract-session-extension
-# Wait for installation to complete
+/pi install https://github.com/emrecanaltinsoy/extract-session-extension.git
+/reload
+# Your extension is ready!
 /extract --help
 /extract --exclude-tools --exclude-thinking
 ```
