@@ -3,16 +3,17 @@
  *
  * Provides an `/extract` command to export user and agent messages from the current session
  * with filtering options (exclude tool calls, thinking blocks) and multiple output formats
- * (text, JSON, markdown).
+ * (text, JSON, markdown). Can save to file or copy to clipboard.
  *
  * Usage:
  *   /extract --exclude-tools --exclude-thinking --format text
- *   /extract --format json
+ *   /extract --format json --output /path/to/directory
  *   /extract --help
  *
  * Features:
  * - Multiple output formats (text, JSON, markdown)
  * - Filter out tool calls and/or thinking blocks
+ * - Save to file or copy to clipboard
  * - Auto-copy to clipboard (with fallbacks)
  * - Tab completion for arguments
  * - Branch-aware session extraction
@@ -47,6 +48,7 @@ export default function (pi: ExtensionAPI) {
         "--include-tools",
         "--include-thinking",
         "--format",
+        "--output",
       ];
       return options.filter((opt) => opt.startsWith(prefix)).map((opt) => ({ value: opt, label: opt }));
     },
@@ -57,6 +59,7 @@ export default function (pi: ExtensionAPI) {
       let includeToolCalls = true;
       let includeThinking = true;
       let outputFormat = "text";
+      let outputPath: string | null = null;
       let showHelp = false;
 
       for (let i = 0; i < argList.length; i++) {
@@ -73,6 +76,8 @@ export default function (pi: ExtensionAPI) {
           includeThinking = true;
         } else if (arg === "--format" && argList[i + 1]) {
           outputFormat = argList[++i];
+        } else if (arg === "--output" && argList[i + 1]) {
+          outputPath = argList[++i];
         }
       }
 
@@ -88,12 +93,14 @@ Options:
   --include-tools       Include tool calls (default)
   --include-thinking    Include thinking blocks (default)
   --format <type>       Output format: text, json, markdown (default: text)
+  --output <path>       Save to file in directory or specific file path
   --help                Show this help message
 
 Examples:
   /extract --exclude-tools --exclude-thinking
-  /extract --format json
-  /extract --format markdown
+  /extract --format json --output ~/Documents
+  /extract --format markdown --output ~/session.md
+  /extract --exclude-thinking --output /tmp
         `.trim();
         ctx.ui.notify(help, "info");
         return;
@@ -117,16 +124,27 @@ Examples:
           output = formatText(messages);
         }
 
+        // Determine file path and save if requested
+        let savedFilePath = "";
+        if (outputPath) {
+          savedFilePath = await saveToFile(output, outputPath, outputFormat, ctx);
+        }
+
         // Try to copy to clipboard with multiple fallbacks
         await copyToClipboard(output, ctx);
 
-        ctx.ui.notify(`✓ Extracted ${messages.length} messages (copied to clipboard)`, "info");
+        // Build success message
+        let message = `✓ Extracted ${messages.length} messages (copied to clipboard)`;
+        if (savedFilePath) {
+          message += `\n✓ Saved to: ${savedFilePath}`;
+        }
+        ctx.ui.notify(message, "info");
 
         // Show preview in custom panel
         if (ctx.mode === "tui") {
           const preview =
             output.split("\n").slice(0, 30).join("\n") +
-            (output.split("\n").length > 30 ? "\n...(truncated, full output in clipboard)" : "");
+            (output.split("\n").length > 30 ? "\n...(truncated, full output in clipboard/file)" : "");
           ctx.ui.notify(preview, "info");
         }
       } catch (error) {
@@ -137,6 +155,62 @@ Examples:
       }
     },
   });
+
+  /**
+   * Save output to file
+   */
+  async function saveToFile(
+    content: string,
+    outputPath: string,
+    format: string,
+    ctx: ExtensionContext
+  ): Promise<string> {
+    try {
+      const fs = await import("fs");
+      const path = await import("path");
+
+      // Determine if outputPath is a directory or file
+      let filePath: string;
+
+      // Check if path is absolute or relative
+      const expandedPath = outputPath.startsWith("~") ? outputPath.replace("~", process.env.HOME || "") : outputPath;
+
+      try {
+        const stats = fs.statSync(expandedPath);
+        if (stats.isDirectory()) {
+          // It's a directory, generate filename
+          const timestamp = new Date().toISOString().replace(/[:.]/g, "-").split("Z")[0];
+          const filename = `extract_${timestamp}.${format}`;
+          filePath = path.join(expandedPath, filename);
+        } else {
+          // Treat as file path
+          filePath = expandedPath;
+        }
+      } catch {
+        // Path doesn't exist, treat as file path or create directory structure
+        if (expandedPath.endsWith("/")) {
+          // It's meant to be a directory
+          fs.mkdirSync(expandedPath, { recursive: true });
+          const timestamp = new Date().toISOString().replace(/[:.]/g, "-").split("Z")[0];
+          const filename = `extract_${timestamp}.${format}`;
+          filePath = path.join(expandedPath, filename);
+        } else {
+          // Check if parent directory exists
+          const parentDir = path.dirname(expandedPath);
+          if (parentDir !== "." && parentDir !== "/") {
+            fs.mkdirSync(parentDir, { recursive: true });
+          }
+          filePath = expandedPath;
+        }
+      }
+
+      // Write file
+      fs.writeFileSync(filePath, content, "utf8");
+      return filePath;
+    } catch (error) {
+      throw new Error(`Failed to save file: ${error instanceof Error ? error.message : String(error)}`);
+    }
+  }
 
   /**
    * Copy text to clipboard with multiple fallback strategies

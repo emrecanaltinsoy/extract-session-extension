@@ -18,6 +18,7 @@ A powerful Pi extension for extracting and filtering user and agent messages fro
 - Custom `/extract` command
 - Tab completion for all arguments
 - Auto-copy to clipboard (with multiple fallbacks)
+- Save to file with `--output` flag
 - Branch-aware (respects `/tree` navigation)
 - Works in all Pi sessions
 
@@ -28,6 +29,12 @@ A powerful Pi extension for extracting and filtering user and agent messages fro
 - pbcopy (macOS)
 - wl-copy (Wayland Linux)
 - Graceful fallback if none available
+
+📁 **File Output**
+- Optional `--output` flag to save to file
+- Auto-generated timestamped filenames
+- Creates directories as needed
+- Supports both file and directory paths
 
 ## Installation
 
@@ -98,41 +105,82 @@ Extracts just the conversation without technical implementation details.
 ### All Available Commands
 
 ```bash
-/extract                                    # Everything
-/extract --help                            # Show help
-/extract --exclude-tools                   # Skip tool calls
-/extract --exclude-thinking                # Skip thinking blocks
-/extract --exclude-tools --exclude-thinking # Just conversation
-/extract --format json                     # JSON format
-/extract --format markdown                 # Markdown format
-/extract --format text                     # Text format (default)
+/extract                                            # Everything
+/extract --help                                    # Show help
+/extract --exclude-tools                           # Skip tool calls
+/extract --exclude-thinking                        # Skip thinking blocks
+/extract --exclude-tools --exclude-thinking        # Just conversation
+/extract --format json                             # JSON format
+/extract --format markdown                         # Markdown format
+/extract --format text                             # Text format (default)
+/extract --output ~/Documents                      # Save to directory
+/extract --format json --output ~/session.json     # Save as specific file
+/extract --exclude-thinking --output /tmp          # Save with filters
 ```
 
 ### Examples
 
+**Extract and copy to clipboard (no file)**
+```
+/extract --exclude-tools --exclude-thinking
+```
+
 **Export for documentation (Markdown)**
 ```
 /extract --format markdown
-# Then paste into README.md, blog, docs, etc.
 ```
 
-**Export for processing (JSON)**
+**Export to file for processing (JSON)**
 ```
-/extract --format json
-# Use with jq, Python, JavaScript, or other tools
+/extract --format json --output ~/Documents
+```
+Creates file: `~/Documents/extract_2026-09-02T165300Z.json`
+
+**Save with specific filename**
+```
+/extract --format json --output ~/session-export.json
 ```
 
-**Clean conversation only**
+**Clean conversation only, save to file**
 ```
-/extract --exclude-tools --exclude-thinking
-# Perfect for sharing, blogs, posts, documentation
+/extract --exclude-tools --exclude-thinking --output /tmp
 ```
+Creates file: `/tmp/extract_2026-09-02T165300Z.txt`
 
-**Everything including debug info**
+**Get everything including debug info, save to file**
 ```
-/extract
-# Includes tool calls, thinking blocks, timestamps, model info
+/extract --output ~/backup
 ```
+Creates file: `~/backup/extract_2026-09-02T165300Z.txt`
+
+## File Output
+
+Use `--output` to save extracted messages to a file instead of just copying to clipboard.
+
+### Output Path Behavior
+
+- **Directory path** (e.g., `--output ~/Documents`):
+  - Creates automatically generated filename: `extract_TIMESTAMP.FORMAT`
+  - Example: `extract_2026-09-02T165300Z.json`
+
+- **File path** (e.g., `--output ~/session.json`):
+  - Saves directly to specified file
+  - Creates parent directories if needed
+
+- **Tilde expansion** (e.g., `--output ~/data`):
+  - `~` automatically expands to your home directory
+
+### Filename Format
+
+Auto-generated filenames use ISO 8601 timestamp:
+- `extract_YYYY-MM-DDTHH-MM-SS.FORMAT`
+- Example: `extract_2026-09-02T16-53-00.json`
+
+This ensures unique, sortable filenames for each export.
+
+### Both Clipboard and File
+
+When using `--output`, messages are **both** saved to file AND copied to clipboard, so you get the best of both!
 
 ## Output Examples
 
