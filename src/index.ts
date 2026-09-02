@@ -20,14 +20,8 @@
 
 import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent";
 
-// Try to import clipboard library
+// Try to import clipboard library (async, loaded on demand)
 let clipboard: any;
-try {
-  // @ts-ignore - dynamic import
-  clipboard = await import("clipboardy");
-} catch {
-  // Clipboard library not available, will use fallbacks
-}
 
 interface MessageData {
   role: string;
@@ -126,7 +120,7 @@ Examples:
         // Try to copy to clipboard with multiple fallbacks
         await copyToClipboard(output, ctx);
 
-        ctx.ui.notify(`✓ Extracted ${messages.length} messages (copied to clipboard)`, "success");
+        ctx.ui.notify(`✓ Extracted ${messages.length} messages (copied to clipboard)`, "info");
 
         // Show preview in custom panel
         if (ctx.mode === "tui") {
@@ -159,12 +153,15 @@ Examples:
     }
 
     // Strategy 2: Try navigator.clipboard (browser-like environments)
-    if (typeof navigator !== "undefined" && navigator.clipboard?.writeText) {
-      try {
-        await navigator.clipboard.writeText(text);
-        return;
-      } catch (err) {
-        // Fall through to next strategy
+    if (typeof (globalThis as any).navigator !== "undefined") {
+      const nav = (globalThis as any).navigator;
+      if (nav.clipboard?.writeText) {
+        try {
+          await nav.clipboard.writeText(text);
+          return;
+        } catch (err) {
+          // Fall through to next strategy
+        }
       }
     }
 
@@ -230,7 +227,7 @@ Examples:
       for (const entry of branchEntries) {
         if (entry.type !== "message") continue;
 
-        const msg = entry.message;
+        const msg = entry.message as any;
         const role = msg.role;
 
         // Extract content
