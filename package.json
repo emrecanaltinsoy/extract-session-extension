@@ -1,0 +1,52 @@
+{
+  "name": "@emrecan/extract-session-extension",
+  "version": "1.0.0",
+  "description": "Pi extension for extracting and filtering user and agent messages from sessions",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "pi",
+    "extension",
+    "session",
+    "messages",
+    "extract",
+    "export",
+    "filter"
+  ],
+  "author": "Emrecan",
+  "license": "MIT",
+  "pi": {
+    "extensions": ["./dist/index.js"]
+  },
+  "dependencies": {
+    "clipboardy": "^3.0.0"
+  },
+  "devDependencies": {
+    "@earendil-works/pi-coding-agent": "latest",
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/emrecan/extract-session-extension.git"
+  },
+  "bugs": {
+    "url": "https://github.com/emrecan/extract-session-extension/issues"
+  },
+  "homepage": "https://github.com/emrecan/extract-session-extension#readme"
+}
