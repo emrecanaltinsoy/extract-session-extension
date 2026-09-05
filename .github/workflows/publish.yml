@@ -1,24 +1,26 @@
 name: Publish to npm
 
 on:
-  release:
-    types: [published]
+  push:
+    tags:
+      - 'v*'  # Publish when you push a version tag (v1.0.0, v1.1.0, etc.)
 
 jobs:
   publish:
     runs-on: ubuntu-latest
+    
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       
-      - uses: actions/setup-node@v3
+      - uses: actions/setup-node@v4
         with:
-          node-version: "18"
-          registry-url: "https://registry.npmjs.org"
+          node-version: '18'
+          registry-url: 'https://registry.npmjs.org'
       
-      - run: npm ci
+      - name: Install dependencies
+        run: npm ci
       
-      - run: npm run build
-      
-      - run: npm publish
+      - name: Publish to npm
+        run: npm publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
