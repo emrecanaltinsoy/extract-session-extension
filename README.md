@@ -4,21 +4,28 @@ A powerful Pi extension for extracting and filtering user and agent messages fro
 
 ## Features
 
+✨ **Smart Defaults**
+- Exclude thinking blocks and tool calls by default
+- Get clean conversation with just `/extract`
+- Include details with short flags: `-its` (tools), `-ith` (thinking)
+
 ✨ **Multiple Output Formats**
 - Text (human-readable, formatted)
 - JSON (machine-readable, for processing)
 - Markdown (documentation-friendly)
+- Auto-detect format from file extension
 
-🎯 **Smart Filtering**
-- Exclude tool calls (bash, file operations, etc.)
-- Exclude thinking blocks (Claude's reasoning)
-- Combine for clean conversation-only exports
+🎯 **Flexible Output**
+- Copy to clipboard (default, always)
+- Save to file with positional argument: `/extract ~/file.json`
+- Auto-format detection from extension: .json, .md, .txt
+- Smart defaults get clean conversations by default
 
 🚀 **Native Pi Integration**
 - Custom `/extract` command
 - Tab completion for all arguments
 - Auto-copy to clipboard (with multiple fallbacks)
-- Save to file with `--output` flag
+- Positional filename argument for saving
 - Branch-aware (respects `/tree` navigation)
 - Works in all Pi sessions
 
@@ -30,187 +37,167 @@ A powerful Pi extension for extracting and filtering user and agent messages fro
 - wl-copy (Wayland Linux)
 - Graceful fallback if none available
 
-📁 **File Output**
-- Optional `--output` flag to save to file
-- Auto-generated timestamped filenames
+📁 **Smart File Output**
+- Simple positional argument: `/extract ~/file.txt`
+- Auto-generates timestamped filenames for directories
+- Auto-detects format from file extension
 - Creates directories as needed
-- Supports both file and directory paths
+- Both clipboard AND file when saving
 
 ## Installation
 
-### Recommended: Local Installation (No Credentials Required)
+### Recommended: Install from npm
 
-**Simplest method - works everywhere, no git/SSH/credentials needed:**
+**Simplest method - install via shell, then reload in Pi:**
 
 ```bash
-# Clone repository (or download ZIP from GitHub)
-git clone https://github.com/emrecanaltinsoy/extract-session-extension.git
-cd extract-session-extension
+# 1. In your terminal/shell (NOT in Pi):
+pi install npm:extract-session-extension
 
-# Install via Pi (from any Pi session)
-/pi install /full/path/to/extract-session-extension
-
-# Or if you're in that directory:
-/pi install .
-
-# Reload Pi
+# 2. In Pi (if already running), reload:
 /reload
 
-# Done!
+# 3. Done! Start using it:
 /extract --help
 ```
 
 **Why this method:**
-- ✅ No GitHub credentials
-- ✅ No SSH setup
-- ✅ No GitHub CLI needed
+- ✅ Simplest (one command)
+- ✅ Installs to your Pi setup
 - ✅ Works everywhere
-- ✅ Simple and reliable
+- ✅ Can update with `pi update --extensions`
 
-See [INSTALL_LOCAL.md](INSTALL_LOCAL.md) for detailed instructions including ZIP download option.
+### Alternative: Local Installation
 
-### Alternative: SSH Installation (if SSH keys configured)
-
-```
-/pi install ssh://git@github.com/emrecanaltinsoy/extract-session-extension.git
-/reload
-```
-
-Requires: SSH keys configured for GitHub
-
-### Option 2: Global npm Installation (if published)
+**If you want to clone and install locally:**
 
 ```bash
-npm install -g extract-session-extension
-```
-
-### Option 4: Install from GitHub
-
-```bash
-npm install emrecanaltinsoy/extract-session-extension
-```
-
-### Option 5: Manual Installation
-
-1. Clone this repository: `git clone https://github.com/emrecanaltinsoy/extract-session-extension.git`
-2. Build it: `npm install && npm run build`
-3. Copy to `~/.pi/agent/extensions/extract-session/`
-
-## Quick Start with Pi
-
-The easiest way to get started:
-
-```bash
-# 1. Clone the repository (or download ZIP from GitHub)
+# 1. Clone repository
 git clone https://github.com/emrecanaltinsoy/extract-session-extension.git
 cd extract-session-extension
 
-# 2. Install via Pi (from any Pi session)
-/pi install .
+# 2. In your terminal, install from local path:
+pi install .
 
-# 3. Reload
+# 3. In Pi, reload:
 /reload
-
-# 4. Use it!
-/extract --help
-/extract --exclude-tools --exclude-thinking
 ```
 
-No credentials, SSH keys, or GitHub CLI needed - works everywhere! 🎉
+Useful for:
+- ✅ Contributing/developing
+- ✅ Testing changes locally
 
-That's it! Your messages are now extracted and copied to clipboard.
+## Quick Start with Pi
+
+Get started in 30 seconds:
+
+```bash
+# 1. In your terminal/shell:
+pi install npm:extract-session-extension
+
+# 2. In Pi (if already running), reload:
+/reload
+
+# 3. Use it!
+/extract --help
+/extract                    # Clean conversation, clipboard only
+/extract -its ~/data.json   # Include tools, save as JSON
+/extract -ith ~/notes.md    # Include thinking, save as markdown
+```
+
+That's it! 🎉
 
 ## Usage
 
 In any Pi session, use the `/extract` command:
 
-### Basic Usage (Clean Conversation)
-
-```
-/extract --exclude-tools --exclude-thinking
-```
-
-Extracts just the conversation without technical implementation details.
-
-### All Available Commands
+### Basic Usage (Default: Clean Conversation)
 
 ```bash
-/extract                                            # Everything
-/extract --help                                    # Show help
-/extract --exclude-tools                           # Skip tool calls
-/extract --exclude-thinking                        # Skip thinking blocks
-/extract --exclude-tools --exclude-thinking        # Just conversation
-/extract --format json                             # JSON format
-/extract --format markdown                         # Markdown format
-/extract --format text                             # Text format (default)
-/extract --output ~/Documents                      # Save to directory
-/extract --format json --output ~/session.json     # Save as specific file
-/extract --exclude-thinking --output /tmp          # Save with filters
+/extract
+```
+
+Extracts just the conversation without thinking blocks or tool calls. Copies to clipboard.
+
+### All Available Options
+
+```bash
+# Exclude everything (default)
+/extract
+
+# Include tool calls
+/extract -its
+# or: /extract --include-tools
+
+# Include thinking blocks
+/extract -ith
+# or: /extract --include-thinking
+
+# Include both
+/extract -its -ith
+
+# Change output format
+/extract -f json           # JSON format (clipboard)
+/extract -f markdown       # Markdown format (clipboard)
+/extract -f text           # Text format (clipboard, default)
+
+# Save to file (format auto-detected from extension)
+/extract ~/session.txt     # Text format, saves to file
+/extract ~/session.json    # JSON format, saves to file
+/extract ~/notes.md        # Markdown format, saves to file
+
+# Combine options
+/extract -its ~/tools.json              # Include tools, JSON, save to file
+/extract -ith ~/thinking.md             # Include thinking, markdown, save to file
+/extract -f json -its ~/full-data.json  # Explicit format + include tools
+
+# Show help
+/extract --help
+```
+
+### Format Auto-Detection
+
+When saving to a file, the format is auto-detected from the extension:
+
+```
+.json, .jsonl → JSON format
+.md, .markdown → Markdown format
+.txt, others → Text format (default)
+```
+
+You can override auto-detection with `-f` / `--format`:
+
+```bash
+/extract -f json ~/myfile.txt   # Forces JSON format despite .txt extension
 ```
 
 ### Examples
 
-**Extract and copy to clipboard (no file)**
-```
-/extract --exclude-tools --exclude-thinking
+**Export and copy to clipboard (no file)**
+```bash
+/extract                      # Clean conversation only
+/extract -its                 # Include tools
+/extract -its -ith            # Include everything
 ```
 
 **Export for documentation (Markdown)**
-```
-/extract --format markdown
-```
-
-**Export to file for processing (JSON)**
-```
-/extract --format json --output ~/Documents
-```
-Creates file: `~/Documents/extract_2026-09-02T165300Z.json`
-
-**Save with specific filename**
-```
-/extract --format json --output ~/session-export.json
+```bash
+/extract ~/session.md
+/extract -its ~/session-with-tools.md
 ```
 
-**Clean conversation only, save to file**
+**Export for processing (JSON)**
+```bash
+/extract -f json ~/session.json
+/extract -its -ith ~/full-data.json
 ```
-/extract --exclude-tools --exclude-thinking --output /tmp
+
+**Smart file saving (format auto-detected)**
+```bash
+/extract ~/backup/session.txt      # Text format
+/extract ~/data/export.json        # JSON format
+/extract ~/docs/notes.md           # Markdown format
 ```
-Creates file: `/tmp/extract_2026-09-02T165300Z.txt`
-
-**Get everything including debug info, save to file**
-```
-/extract --output ~/backup
-```
-Creates file: `~/backup/extract_2026-09-02T165300Z.txt`
-
-## File Output
-
-Use `--output` to save extracted messages to a file instead of just copying to clipboard.
-
-### Output Path Behavior
-
-- **Directory path** (e.g., `--output ~/Documents`):
-  - Creates automatically generated filename: `extract_TIMESTAMP.FORMAT`
-  - Example: `extract_2026-09-02T165300Z.json`
-
-- **File path** (e.g., `--output ~/session.json`):
-  - Saves directly to specified file
-  - Creates parent directories if needed
-
-- **Tilde expansion** (e.g., `--output ~/data`):
-  - `~` automatically expands to your home directory
-
-### Filename Format
-
-Auto-generated filenames use ISO 8601 timestamp:
-- `extract_YYYY-MM-DDTHH-MM-SS.FORMAT`
-- Example: `extract_2026-09-02T16-53-00.json`
-
-This ensures unique, sortable filenames for each export.
-
-### Both Clipboard and File
-
-When using `--output`, messages are **both** saved to file AND copied to clipboard, so you get the best of both!
 
 ## Output Examples
 
