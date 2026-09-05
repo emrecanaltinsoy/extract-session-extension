@@ -1,6 +1,6 @@
 {
   "name": "extract-session-extension",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "Pi extension for extracting and filtering user and agent messages from sessions with multiple output formats",
   "type": "module",
   "license": "MIT",
