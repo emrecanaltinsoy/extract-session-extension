@@ -43,12 +43,12 @@ export default function (pi: ExtensionAPI) {
     getArgumentCompletions: (prefix) => {
       const options = [
         "--help",
-        "--exclude-tools",
-        "--exclude-thinking",
+        "-its",
+        "-ith",
         "--include-tools",
         "--include-thinking",
+        "-f",
         "--format",
-        "--output",
       ];
       return options.filter((opt) => opt.startsWith(prefix)).map((opt) => ({ value: opt, label: opt }));
     },
@@ -56,28 +56,26 @@ export default function (pi: ExtensionAPI) {
       const argList = args.split(/\s+/).filter(Boolean);
 
       // Parse arguments
-      let includeToolCalls = true;
-      let includeThinking = true;
+      let includeToolCalls = false;  // Default: exclude
+      let includeThinking = false;   // Default: exclude
       let outputFormat = "text";
-      let outputPath: string | null = null;
+      let outputFilePath: string | null = null;
       let showHelp = false;
 
       for (let i = 0; i < argList.length; i++) {
         const arg = argList[i];
+        
         if (arg === "--help") {
           showHelp = true;
-        } else if (arg === "--exclude-tools") {
-          includeToolCalls = false;
-        } else if (arg === "--exclude-thinking") {
-          includeThinking = false;
-        } else if (arg === "--include-tools") {
+        } else if (arg === "-its" || arg === "--include-tools") {
           includeToolCalls = true;
-        } else if (arg === "--include-thinking") {
+        } else if (arg === "-ith" || arg === "--include-thinking") {
           includeThinking = true;
-        } else if (arg === "--format" && argList[i + 1]) {
+        } else if ((arg === "-f" || arg === "--format") && argList[i + 1]) {
           outputFormat = argList[++i];
-        } else if (arg === "--output" && argList[i + 1]) {
-          outputPath = argList[++i];
+        } else if (!arg.startsWith("-")) {
+          // Positional argument: treat as filename
+          outputFilePath = arg;
         }
       }
 
@@ -85,22 +83,25 @@ export default function (pi: ExtensionAPI) {
         const help = `
 Extract Session Messages
 
-Usage: /extract [options]
+Usage: /extract [options] [filename]
 
 Options:
-  --exclude-tools       Exclude tool calls from output
-  --exclude-thinking    Exclude thinking blocks from output
-  --include-tools       Include tool calls (default)
-  --include-thinking    Include thinking blocks (default)
-  --format <type>       Output format: text, json, markdown (default: text)
-  --output <path>       Save to file in directory or specific file path
-  --help                Show this help message
+  -its, --include-tools       Include tool calls in output
+  -ith, --include-thinking    Include thinking blocks in output
+  -f, --format <type>         Output format: text, json, markdown (default: text)
+  --help                      Show this help message
+
+Filename (optional):
+  Save to file. Format auto-detected from extension (.json, .md, .txt)
+  If not specified, output copied to clipboard only
 
 Examples:
-  /extract --exclude-tools --exclude-thinking
-  /extract --format json --output ~/Documents
-  /extract --format markdown --output ~/session.md
-  /extract --exclude-thinking --output /tmp
+  /extract                              # Exclude all, clipboard only
+  /extract -its                         # Include tools, clipboard only
+  /extract -its -ith                    # Include both, clipboard only
+  /extract ~/session.txt                # Save to file, exclude all
+  /extract -f json ~/session.json       # Format specified, save to file
+  /extract -its ~/tools-included.md     # Include tools, markdown format, save to file
         `.trim();
         ctx.ui.notify(help, "info");
         return;
@@ -112,6 +113,15 @@ Examples:
         if (messages.length === 0) {
           ctx.ui.notify("No messages found in session", "warning");
           return;
+        }
+
+        // Auto-detect format from filename if not explicitly set
+        if (outputFilePath && outputFormat === "text") {
+          if (outputFilePath.endsWith(".json")) {
+            outputFormat = "json";
+          } else if (outputFilePath.endsWith(".md") || outputFilePath.endsWith(".markdown")) {
+            outputFormat = "markdown";
+          }
         }
 
         let output = "";
@@ -126,8 +136,8 @@ Examples:
 
         // Determine file path and save if requested
         let savedFilePath = "";
-        if (outputPath) {
-          savedFilePath = await saveToFile(output, outputPath, outputFormat, ctx);
+        if (outputFilePath) {
+          savedFilePath = await saveToFile(output, outputFilePath, outputFormat, ctx);
         }
 
         // Try to copy to clipboard with multiple fallbacks
@@ -161,7 +171,7 @@ Examples:
    */
   async function saveToFile(
     content: string,
-    outputPath: string,
+    filePath: string,
     format: string,
     ctx: ExtensionContext
   ): Promise<string> {
@@ -169,44 +179,43 @@ Examples:
       const fs = await import("fs");
       const path = await import("path");
 
-      // Determine if outputPath is a directory or file
-      let filePath: string;
+      // Expand tilde to home directory
+      const expandedPath = filePath.startsWith("~") ? filePath.replace("~", process.env.HOME || "") : filePath;
 
-      // Check if path is absolute or relative
-      const expandedPath = outputPath.startsWith("~") ? outputPath.replace("~", process.env.HOME || "") : outputPath;
-
+      // Check if path exists
+      let finalPath: string;
       try {
         const stats = fs.statSync(expandedPath);
         if (stats.isDirectory()) {
-          // It's a directory, generate filename
+          // It's a directory, generate filename with timestamp
           const timestamp = new Date().toISOString().replace(/[:.]/g, "-").split("Z")[0];
           const filename = `extract_${timestamp}.${format}`;
-          filePath = path.join(expandedPath, filename);
+          finalPath = path.join(expandedPath, filename);
         } else {
-          // Treat as file path
-          filePath = expandedPath;
+          // It's a file path
+          finalPath = expandedPath;
         }
       } catch {
-        // Path doesn't exist, treat as file path or create directory structure
+        // Path doesn't exist, treat as file path
         if (expandedPath.endsWith("/")) {
           // It's meant to be a directory
           fs.mkdirSync(expandedPath, { recursive: true });
           const timestamp = new Date().toISOString().replace(/[:.]/g, "-").split("Z")[0];
           const filename = `extract_${timestamp}.${format}`;
-          filePath = path.join(expandedPath, filename);
+          finalPath = path.join(expandedPath, filename);
         } else {
-          // Check if parent directory exists
+          // It's a file path, create parent directories if needed
           const parentDir = path.dirname(expandedPath);
           if (parentDir !== "." && parentDir !== "/") {
             fs.mkdirSync(parentDir, { recursive: true });
           }
-          filePath = expandedPath;
+          finalPath = expandedPath;
         }
       }
 
       // Write file
-      fs.writeFileSync(filePath, content, "utf8");
-      return filePath;
+      fs.writeFileSync(finalPath, content, "utf8");
+      return finalPath;
     } catch (error) {
       throw new Error(`Failed to save file: ${error instanceof Error ? error.message : String(error)}`);
     }
@@ -361,18 +370,22 @@ Examples:
       output += `Role: ${msg.role.toUpperCase()} | ${msg.timestamp}\n`;
       output += "=".repeat(60) + "\n";
 
-      if (msg.text) {
-        output += msg.text + "\n";
-      }
-
+      // Thinking blocks first (happens before the response)
       if (msg.thinking && msg.thinking.length > 0) {
         output += "\n[THINKING BLOCKS]\n";
         for (let i = 0; i < msg.thinking.length; i++) {
           output += `\n--- Block ${i + 1} ---\n`;
           output += msg.thinking[i] + "\n";
         }
+        output += "\n";
       }
 
+      // Then the actual message text
+      if (msg.text) {
+        output += msg.text + "\n";
+      }
+
+      // Then tool calls
       if (msg.toolCalls && msg.toolCalls.length > 0) {
         output += "\n[TOOL CALLS]\n";
         for (const call of msg.toolCalls) {
@@ -403,10 +416,7 @@ Examples:
     for (const msg of messages) {
       output += `## ${msg.role.toUpperCase()}\n\n`;
 
-      if (msg.text) {
-        output += msg.text + "\n\n";
-      }
-
+      // Thinking blocks first (happens before the response)
       if (msg.thinking && msg.thinking.length > 0) {
         output += "### Thinking\n\n";
         for (const t of msg.thinking) {
@@ -414,6 +424,12 @@ Examples:
         }
       }
 
+      // Then the actual message text
+      if (msg.text) {
+        output += msg.text + "\n\n";
+      }
+
+      // Then tool calls
       if (msg.toolCalls && msg.toolCalls.length > 0) {
         output += "### Tool Calls\n\n";
         for (const call of msg.toolCalls) {
