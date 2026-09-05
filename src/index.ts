@@ -313,6 +313,11 @@ Examples:
         const msg = entry.message as any;
         const role = msg.role;
 
+        // Skip tool result messages if not including tool calls
+        if (role === "toolResult" && !includeToolCalls) {
+          continue;
+        }
+
         // Extract content
         let textContent: string[] = [];
         let toolCalls: any[] = [];
